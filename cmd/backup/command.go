@@ -29,7 +29,11 @@ func newCommand() *command {
 
 // runAsCommand executes a backup run for each configuration that is available
 // and then returns
-func (c *command) runAsCommand() error {
+func (c *command) runAsCommand(style string) error {
+	if style != "envfile" {
+		return fmt.Errorf("config style %s not implemented", style)
+	}
+
 	configurations, err := sourceConfiguration(configStrategyEnv)
 	if err != nil {
 		return errwrap.Wrap(err, "error loading env vars")
@@ -50,7 +54,11 @@ type foregroundOpts struct {
 
 // runInForeground starts the program as a long running process, scheduling
 // a job for each configuration that is available.
-func (c *command) runInForeground(opts foregroundOpts) error {
+func (c *command) runInForeground(opts foregroundOpts, style string) error {
+	if style != "envfile" {
+		return fmt.Errorf("config style %s not implemented", style)
+	}
+
 	c.cr = cron.New(
 		cron.WithParser(
 			cron.NewParser(
