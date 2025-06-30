@@ -8,10 +8,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
+
+	"github.com/docker/docker/client"
 
 	"github.com/joho/godotenv"
 	"github.com/offen/docker-volume-backup/internal/errwrap"
+	"github.com/offen/docker-volume-backup/internal/labels"
 	"github.com/offen/envconfig"
 	shell "mvdan.cc/sh/v3/shell"
 )
@@ -19,8 +23,9 @@ import (
 type configStrategy string
 
 const (
-	configStrategyEnv   configStrategy = "env"
-	configStrategyConfd configStrategy = "confd"
+	configStrategyEnv    configStrategy = "env"
+	configStrategyConfd  configStrategy = "confd"
+	configStrategyLabels configStrategy = "labels"
 )
 
 // sourceConfiguration returns a list of config objects using the given
@@ -38,6 +43,12 @@ func sourceConfiguration(strategy configStrategy) ([]*Config, error) {
 				return sourceConfiguration(configStrategyEnv)
 			}
 			return nil, errwrap.Wrap(err, "error loading config files")
+		}
+		return cs, nil
+	case configStrategyLabels:
+		cs, err := loadConfigsFromLabels()
+		if err != nil {
+			return nil, errwrap.Wrap(err, "error loading labels")
 		}
 		return cs, nil
 	default:
@@ -123,6 +134,68 @@ func loadConfigsFromEnvFiles(directory string) ([]*Config, error) {
 	}
 
 	return configs, nil
+}
+
+func loadConfigsFromLabels() ([]*Config, error) {
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return nil, errwrap.Wrap(err, "error creating docker client")
+	}
+	defer cli.Close()
+
+	volumes, err := labels.ScanVolumeLabels(cli)
+	if err != nil {
+		return nil, errwrap.Wrap(err, "error retrieving volume labels")
+	}
+
+	configs := []*Config{}
+	for name, ls := range volumes {
+		base, err := loadConfigFromEnvVars()
+		if err != nil {
+			return nil, err
+		}
+
+		labelCfg, err := labels.ParseBasicLabels(ls)
+		if err != nil {
+			return nil, errwrap.Wrap(err, fmt.Sprintf("error parsing labels for volume %s", name))
+		}
+		if err := labels.ParseAdvancedLabels(ls, &labelCfg); err != nil {
+			return nil, errwrap.Wrap(err, fmt.Sprintf("error parsing labels for volume %s", name))
+		}
+
+		applyLabelConfig(base, labelCfg)
+		base.source = name
+		configs = append(configs, base)
+	}
+
+	return configs, nil
+}
+
+func applyLabelConfig(c *Config, l labels.Config) {
+	cv := reflect.ValueOf(c).Elem()
+	lv := reflect.ValueOf(l)
+
+	for i := 0; i < lv.NumField(); i++ {
+		lf := lv.Field(i)
+		if lf.IsZero() {
+			continue
+		}
+
+		name := lv.Type().Field(i).Name
+		cf := cv.FieldByName(name)
+		if !cf.IsValid() || !cf.CanSet() {
+			continue
+		}
+
+		if cf.Kind() == reflect.Slice {
+			clone := reflect.MakeSlice(cf.Type(), lf.Len(), lf.Len())
+			reflect.Copy(clone, lf)
+			cf.Set(clone)
+			continue
+		}
+
+		cf.Set(lf)
+	}
 }
 
 // source tries to mimic the pre v2.37.0 behavior of calling

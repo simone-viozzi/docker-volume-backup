@@ -9,7 +9,7 @@ import (
 	"github.com/offen/docker-volume-backup/internal/errwrap"
 )
 
-// parseAdvancedLabels updates the given Config with additional values parsed
+// ParseAdvancedLabels updates the given Config with additional values parsed
 // from labels. Supported keys are:
 //   - gpg-passphrase
 //   - gpg-public-key-ring
@@ -20,7 +20,7 @@ import (
 //   - notification-level
 //
 // Unknown keys are ignored.
-func parseAdvancedLabels(labels map[string]string, c *Config) error {
+func ParseAdvancedLabels(labels map[string]string, c *Config) error {
 	trimmed := map[string]string{}
 	for key, value := range labels {
 		if strings.HasPrefix(key, Prefix) {

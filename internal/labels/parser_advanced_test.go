@@ -73,7 +73,7 @@ func TestParseAdvancedLabels(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			cfg := test.start
-			err := parseAdvancedLabels(test.labels, &cfg)
+			err := ParseAdvancedLabels(test.labels, &cfg)
 			if (err != nil) != test.expectError {
 				t.Fatalf("unexpected error state %v", err)
 			}
@@ -86,7 +86,7 @@ func TestParseAdvancedLabels(t *testing.T) {
 
 func Example_parseAdvancedLabels() {
 	cfg := Config{}
-	_ = parseAdvancedLabels(map[string]string{
+	_ = ParseAdvancedLabels(map[string]string{
 		Prefix + "age-public-keys":   "key1,key2",
 		Prefix + "notification-urls": "https://example.com",
 	}, &cfg)

@@ -70,6 +70,26 @@ volumes:
   data:
 ```
 
+You can also supply configuration via Docker volume labels by running the
+`backup` service with `--config-style=labels` and attaching configuration labels
+to your volumes:
+
+```yml
+services:
+  backup:
+    image: offen/docker-volume-backup:latest
+    command: ["--config-style=labels"]
+    volumes:
+      - data:/backup/my-app-backup:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+volumes:
+  data:
+    labels:
+      dvbackup.schedule: "@daily"
+      dvbackup.target: "/archive"
+      dvbackup.rotation: "7"
+```
+
 ### One-off backups using Docker CLI
 
 To run a one time backup, mount the volume you would like to see backed up into a container and run the `backup` command:
