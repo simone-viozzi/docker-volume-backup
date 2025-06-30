@@ -72,7 +72,7 @@ volumes:
 
 You can also supply configuration via Docker volume labels by running the
 `backup` service with `--config-style=labels` and attaching configuration labels
-to your volumes:
+to your volumes. When this option is used, environment files are ignored:
 
 ```yml
 services:
