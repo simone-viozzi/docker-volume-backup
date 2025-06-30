@@ -21,6 +21,12 @@ type Config struct {
 	BackupStopDuringBackupLabel string
 	NotificationURLs            []string
 	NotificationLevel           string
+	EmailNotificationRecipient  string
+	EmailNotificationSender     string
+	EmailSMTPHost               string
+	EmailSMTPPort               int
+	EmailSMTPUsername           string
+	EmailSMTPPassword           string
 }
 
 // parseBasicLabels converts a set of volume labels into a Config.
