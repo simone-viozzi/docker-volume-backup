@@ -29,12 +29,12 @@ type Config struct {
 	EmailSMTPPassword           string
 }
 
-// parseBasicLabels converts a set of volume labels into a Config.
+// ParseBasicLabels converts a set of volume labels into a Config.
 // Supported keys are:
 //   - schedule: cron expression controlling when to run a backup
 //   - target:   backup archive path
 //   - rotation: number of days to keep backups
-func parseBasicLabels(labels map[string]string) (Config, error) {
+func ParseBasicLabels(labels map[string]string) (Config, error) {
 	trimmed := map[string]string{}
 	for key, value := range labels {
 		if strings.HasPrefix(key, Prefix) {

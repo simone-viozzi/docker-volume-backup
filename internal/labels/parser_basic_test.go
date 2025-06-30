@@ -53,7 +53,7 @@ func TestParseBasicLabels(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := parseBasicLabels(test.labels)
+			result, err := ParseBasicLabels(test.labels)
 			if (err != nil) != test.expectError {
 				t.Fatalf("unexpected error state %v", err)
 			}
@@ -65,7 +65,7 @@ func TestParseBasicLabels(t *testing.T) {
 }
 
 func Example_parseBasicLabels() {
-	cfg, _ := parseBasicLabels(map[string]string{
+	cfg, _ := ParseBasicLabels(map[string]string{
 		Prefix + "schedule": "@hourly",
 		Prefix + "target":   "/archive",
 		Prefix + "rotation": "3",
