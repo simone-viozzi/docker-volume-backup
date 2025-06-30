@@ -62,7 +62,8 @@ volumes:
 
 You can also provide all configuration via Docker volume labels. Start the
 `backup` service with `--config-style=labels` and attach configuration labels to
-your volumes using the `dvbackup.` prefix:
+your volumes using the `dvbackup.` prefix. When running with this option,
+environment files are ignored:
 
 ```yml
 services:

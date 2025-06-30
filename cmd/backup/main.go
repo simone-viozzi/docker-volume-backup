@@ -10,7 +10,7 @@ import (
 func main() {
 	foreground := flag.Bool("foreground", false, "run the tool in the foreground")
 	profile := flag.String("profile", "", "collect runtime metrics and log them periodically on the given cron expression")
-	configStyle := flag.String("config-style", "envfile", "configuration style: envfile or labels")
+	configStyle := flag.String("config-style", "envfile", "load configuration from envfile (default) or labels")
 	flag.Parse()
 
 	c := newCommand()
