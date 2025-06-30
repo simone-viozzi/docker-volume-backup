@@ -11,9 +11,16 @@ import (
 
 // Config holds the subset of configuration derived from volume labels.
 type Config struct {
-	BackupCronExpression string
-	BackupArchive        string
-	BackupRetentionDays  int32
+	BackupCronExpression        string
+	BackupArchive               string
+	BackupRetentionDays         int32
+	GpgPassphrase               string
+	GpgPublicKeyRing            string
+	AgePassphrase               string
+	AgePublicKeys               []string
+	BackupStopDuringBackupLabel string
+	NotificationURLs            []string
+	NotificationLevel           string
 }
 
 // parseBasicLabels converts a set of volume labels into a Config.
