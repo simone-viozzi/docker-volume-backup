@@ -11,6 +11,8 @@ services:
     environment:
       BACKUP_FILENAME: test.tar.gz
     volumes:
+      # TODO: why do we need to mount the volume of the other service?
+      #     why it cannot mount it by its own?
       - app_data:/backup/app_data:ro
       - ${LOCAL_DIR:-./local}:/archive
       - /var/run/docker.sock:/var/run/docker.sock:ro
