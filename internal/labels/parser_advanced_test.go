@@ -68,6 +68,35 @@ func TestParseAdvancedLabels(t *testing.T) {
 			},
 			expectError: true,
 		},
+		{
+			name: "without prefix",
+			labels: map[string]string{
+				"gpg-passphrase":     "abc",
+				"notification-level": "ERROR",
+				"smtp-port":          "80",
+			},
+			expected: Config{
+				GpgPassphrase:     "abc",
+				NotificationLevel: "error",
+				EmailSMTPPort:     80,
+			},
+		},
+		{
+			name: "empty lists",
+			labels: map[string]string{
+				Prefix + "age-public-keys":   "",
+				Prefix + "notification-urls": "",
+			},
+			expected: Config{},
+		},
+		{
+			name: "whitespace lists",
+			labels: map[string]string{
+				Prefix + "age-public-keys":   " , ",
+				Prefix + "notification-urls": " ,",
+			},
+			expected: Config{},
+		},
 	}
 
 	for _, test := range tests {
