@@ -72,7 +72,9 @@ volumes:
 
 You can also supply configuration via Docker volume labels by running the
 `backup` service with `--config-style=labels` and attaching configuration labels
-to your volumes. When this option is used, environment files are ignored:
+to your volumes. When this option is used, environment files are ignored. The
+label prefix defaults to `dvbackup.` and can be changed using `--label-prefix` or
+the `LABEL_PREFIX` environment variable:
 
 ```yml
 services:
