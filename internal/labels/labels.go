@@ -4,4 +4,6 @@
 package labels
 
 // Prefix is the namespace used when scanning Docker volumes for configuration labels.
-const Prefix = "dvbackup."
+// It can be overridden at runtime using the `--label-prefix` flag or the
+// `LABEL_PREFIX` environment variable.
+var Prefix = "dvbackup."
