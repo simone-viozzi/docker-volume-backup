@@ -155,6 +155,36 @@ This plan outlines a series of GitHub issues for adding Docker label driven conf
 - **Priority:** P3
 - **Predecessor:** Issues 1 and 2
 
+## Issue 15 - Discover Swarm node for volumes
+- **Description:** When Docker runs in Swarm mode, determine the node owning each labeled volume using `docker volume inspect`.
+- **Objective:** Provide the information needed to back up volumes on the correct host.
+- **Complexity:** M
+- **Expected Result:** Helper function `volumeNodeID(name string) (string, error)` returns the Swarm node ID or empty string when not in Swarm mode.
+- **Advice:** Extend the Docker client helper to read the `NodeID` field from the volume inspect output.
+- **Labels:** enhancement
+- **Priority:** P3
+- **Predecessor:** Issue 8
+
+## Issue 16 - Spawn helper container on volume node
+- **Description:** Start a short-lived backup container on the node that owns a labeled volume based on the node ID information.
+- **Objective:** Allow centrally managed backups while ensuring volumes are archived on their respective nodes.
+- **Complexity:** L
+- **Expected Result:** The main service creates a helper container with the appropriate Swarm constraint or remote `DOCKER_HOST` setting.
+- **Advice:** Reuse `docker run` options from existing backup logic and clean up the helper container after completion.
+- **Labels:** enhancement
+- **Priority:** P3
+- **Predecessor:** Issue 15
+
+## Issue 17 - Document and test Swarm helper workflow
+- **Description:** Update documentation and integration tests to cover the helper container approach for Swarm setups.
+- **Objective:** Demonstrate how backups work across Swarm nodes and ensure reliability.
+- **Complexity:** M
+- **Expected Result:** `docs/how-tos/use-with-docker-swarm.md` explains the helper mechanism and integration tests exercise it.
+- **Advice:** Add a new test scenario under `test/swarm` orchestrating multiple nodes with a labeled volume.
+- **Labels:** documentation, test
+- **Priority:** P2
+- **Predecessor:** Issue 16
+
 ```mermaid
 graph TD
     I1("1: config-style flag") --> I2("2: label prefix constant")
@@ -172,4 +202,7 @@ graph TD
     I11 --> I12("12: documentation")
     I1 --> I13("13: custom prefix")
     I2 --> I13
+    I12 --> I15("15: discover node")
+    I15 --> I16("16: helper container")
+    I16 --> I17("17: swarm docs & tests")
 ```

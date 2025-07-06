@@ -49,6 +49,32 @@ func TestParseBasicLabels(t *testing.T) {
 			},
 			expectError: true,
 		},
+		{
+			name: "without prefix",
+			labels: map[string]string{
+				"schedule": "@weekly",
+				"target":   "/var/data",
+				"rotation": "5",
+			},
+			expected: Config{
+				BackupCronExpression: "@weekly",
+				BackupArchive:        "/var/data",
+				BackupRetentionDays:  5,
+			},
+		},
+		{
+			name: "mixed prefix",
+			labels: map[string]string{
+				Prefix + "schedule": "@hourly",
+				"target":            "/tmp",
+				Prefix + "rotation": "9",
+			},
+			expected: Config{
+				BackupCronExpression: "@hourly",
+				BackupArchive:        "/tmp",
+				BackupRetentionDays:  9,
+			},
+		},
 	}
 
 	for _, test := range tests {
