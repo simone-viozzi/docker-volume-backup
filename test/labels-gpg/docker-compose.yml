@@ -1,0 +1,25 @@
+services:
+  data:
+    image: alpine:3.17.3
+    command: ["/bin/sh", "-c", "mkdir -p /data && echo 'hello' > /data/foo.txt && sleep infinity"]
+    volumes:
+      - app_data:/data
+
+  backup:
+    image: offen/docker-volume-backup:${TEST_VERSION:-canary}
+    command: ["--config-style=labels"]
+    environment:
+      BACKUP_FILENAME: test.tar.gz
+      BACKUP_LATEST_SYMLINK: test-latest.tar.gz.gpg
+    volumes:
+      - app_data:/backup/app_data:ro
+      - ${LOCAL_DIR:-./local}:/archive
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+volumes:
+  app_data:
+    labels:
+      dvbackup.schedule: "@daily"
+      dvbackup.target: "/archive"
+      dvbackup.rotation: "7"
+      dvbackup.gpg-passphrase: "1234#$ecret"
