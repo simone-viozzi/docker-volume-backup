@@ -28,6 +28,15 @@ const (
 	configStrategyLabels configStrategy = "labels"
 )
 
+var (
+	dockerClientFactory = func() (*client.Client, error) {
+		return client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	}
+	scanVolumeLabelsFn    = labels.ScanVolumeLabels
+	parseBasicLabelsFn    = labels.ParseBasicLabels
+	parseAdvancedLabelsFn = labels.ParseAdvancedLabels
+)
+
 // sourceConfiguration returns a list of config objects using the given
 // strategy. It should be the single entrypoint for retrieving configuration
 // for all consumers.
@@ -137,13 +146,15 @@ func loadConfigsFromEnvFiles(directory string) ([]*Config, error) {
 }
 
 func loadConfigsFromLabels() ([]*Config, error) {
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	cli, err := dockerClientFactory()
 	if err != nil {
 		return nil, errwrap.Wrap(err, "error creating docker client")
 	}
-	defer cli.Close()
+	if cli != nil {
+		defer cli.Close()
+	}
 
-	volumes, err := labels.ScanVolumeLabels(cli)
+	volumes, err := scanVolumeLabelsFn(cli)
 	if err != nil {
 		return nil, errwrap.Wrap(err, "error retrieving volume labels")
 	}
@@ -155,11 +166,11 @@ func loadConfigsFromLabels() ([]*Config, error) {
 			return nil, err
 		}
 
-		labelCfg, err := labels.ParseBasicLabels(ls)
+		labelCfg, err := parseBasicLabelsFn(ls)
 		if err != nil {
 			return nil, errwrap.Wrap(err, fmt.Sprintf("error parsing labels for volume %s", name))
 		}
-		if err := labels.ParseAdvancedLabels(ls, &labelCfg); err != nil {
+		if err := parseAdvancedLabelsFn(ls, &labelCfg); err != nil {
 			return nil, errwrap.Wrap(err, fmt.Sprintf("error parsing labels for volume %s", name))
 		}
 
