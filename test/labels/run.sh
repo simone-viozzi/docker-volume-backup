@@ -11,7 +11,7 @@ export LOCAL_DIR=$(mktemp -d)
 docker compose up -d --quiet-pull
 sleep 5
 
-docker compose exec backup backup
+docker compose exec backup backup --config-style=labels
 
 sleep 5
 
@@ -24,3 +24,14 @@ if [ ! -f "$tmp_dir/backup/app_data/foo.txt" ]; then
 fi
 
 pass "Found relevant file in untared local backup."
+
+# Backdate a dummy backup to verify pruning uses the rotation value from labels
+touch -d "14 days ago" "$LOCAL_DIR/old.tar.gz"
+
+docker compose exec backup backup --config-style=labels
+
+if [ -f "$LOCAL_DIR/old.tar.gz" ]; then
+  fail "Old backup has not been pruned."
+fi
+
+pass "Old backup has been pruned according to rotation label."

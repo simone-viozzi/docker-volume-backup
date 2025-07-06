@@ -155,6 +155,46 @@ This plan outlines a series of GitHub issues for adding Docker label driven conf
 - **Priority:** P3
 - **Predecessor:** Issues 1 and 2
 
+## Issue 14 - Run helper container for local volumes
+- **Description:** When running on a single Docker host, automatically start a short-lived helper container with the target volume attached instead of requiring users to mount the volume manually.
+- **Objective:** Simplify Compose setups by removing the explicit volume mount.
+- **Complexity:** M
+- **Expected Result:** A backup executes successfully using only the Docker socket and labels to identify volumes.
+- **Advice:**
+  1. Add a helper that `docker run`s the existing image with the configured volume and waits for completion.
+  2. Reuse cleanup logic planned for the Swarm helper container.
+- **Report:**
+  - The integration test at `test/labels/docker-compose.yml` lines 14–16 shows a
+    TODO questioning why the data volume must be manually mounted.
+  - Default backup paths are defined in `cmd/backup/config.go` (`BackupSources`
+    defaults to `/backup`).
+  - Label configuration is loaded in `cmd/backup/config_provider.go` via
+    `loadConfigsFromLabels()` which returns one `Config` per labeled volume.
+  - Each config is processed in `cmd/backup/command.go` `runAsCommand()` lines
+    32–54 which currently calls `runScript` directly.
+  - `runScript` orchestrates the backup from `cmd/backup/run_script.go` and
+    expects the volume to already be mounted.
+- **Minimal working example:**
+  ```go
+  cli, _ := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+  resp, _ := cli.ContainerCreate(ctx,
+      &container.Config{Image: "offen/docker-volume-backup:v2", Cmd: []string{"backup"}},
+      &container.HostConfig{Binds: []string{"app_data:/backup:ro"}},
+      nil, nil, "")
+  cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
+  cli.ContainerWait(ctx, resp.ID)
+  cli.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{RemoveVolumes: true})
+  ```
+  The helper should mount the volume path as shown above and run the backup
+  command.
+- **Subissues:**
+  1. Implement a small `localhelper` package exposing `Run(volume string, cfg *Config)` to spawn the container and wait for completion.
+  2. Call `localhelper.Run` from `cmd/backup/command.go` when using the `labels`
+     strategy and Docker is not in Swarm mode.
+- **Labels:** enhancement
+- **Priority:** P2
+- **Predecessor:** Issue 8
+
 ## Issue 15 - Discover Swarm node for volumes
 - **Description:** When Docker runs in Swarm mode, determine the node owning each labeled volume using `docker volume inspect`.
 - **Objective:** Provide the information needed to back up volumes on the correct host.
@@ -202,7 +242,8 @@ graph TD
     I11 --> I12("12: documentation")
     I1 --> I13("13: custom prefix")
     I2 --> I13
-    I12 --> I15("15: discover node")
+    I12 --> I14("14: helper container")
+    I14 --> I15("15: discover node")
     I15 --> I16("16: helper container")
     I16 --> I17("17: swarm docs & tests")
 ```

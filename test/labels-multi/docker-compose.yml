@@ -1,0 +1,35 @@
+services:
+  data1:
+    image: alpine:3.17.3
+    command: ["/bin/sh", "-c", "mkdir -p /data && echo 'alpha' > /data/foo.txt && sleep infinity"]
+    volumes:
+      - vol_one:/data
+
+  data2:
+    image: alpine:3.17.3
+    command: ["/bin/sh", "-c", "mkdir -p /data && echo 'beta' > /data/bar.txt && sleep infinity"]
+    volumes:
+      - vol_two:/data
+
+  backup:
+    image: offen/docker-volume-backup:${TEST_VERSION:-canary}
+    command: ["--config-style=labels"]
+    environment:
+      BACKUP_FILENAME: test.tar.gz
+    volumes:
+      - vol_one:/backup/vol_one:ro
+      - vol_two:/backup/vol_two:ro
+      - ${LOCAL_DIR:-./local}:/archive
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+volumes:
+  vol_one:
+    labels:
+      dvbackup.schedule: "@daily"
+      dvbackup.target: "/archive/one"
+      dvbackup.rotation: "7"
+  vol_two:
+    labels:
+      dvbackup.schedule: "@daily"
+      dvbackup.target: "/archive/two"
+      dvbackup.rotation: "7"
