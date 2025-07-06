@@ -155,6 +155,18 @@ This plan outlines a series of GitHub issues for adding Docker label driven conf
 - **Priority:** P3
 - **Predecessor:** Issues 1 and 2
 
+## Issue 14 - Run helper container for local volumes
+- **Description:** When running on a single Docker host, automatically start a short-lived helper container with the target volume attached instead of requiring users to mount the volume manually.
+- **Objective:** Simplify Compose setups by removing the explicit volume mount.
+- **Complexity:** M
+- **Expected Result:** A backup executes successfully using only the Docker socket and labels to identify volumes.
+- **Advice:**
+  1. Add a helper that `docker run`s the existing image with the configured volume and waits for completion.
+  2. Reuse cleanup logic planned for the Swarm helper container.
+- **Labels:** enhancement
+- **Priority:** P2
+- **Predecessor:** Issue 8
+
 ## Issue 15 - Discover Swarm node for volumes
 - **Description:** When Docker runs in Swarm mode, determine the node owning each labeled volume using `docker volume inspect`.
 - **Objective:** Provide the information needed to back up volumes on the correct host.
@@ -202,7 +214,8 @@ graph TD
     I11 --> I12("12: documentation")
     I1 --> I13("13: custom prefix")
     I2 --> I13
-    I12 --> I15("15: discover node")
+    I12 --> I14("14: helper container")
+    I14 --> I15("15: discover node")
     I15 --> I16("16: helper container")
     I16 --> I17("17: swarm docs & tests")
 ```
