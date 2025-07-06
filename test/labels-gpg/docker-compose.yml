@@ -22,4 +22,4 @@ volumes:
       dvbackup.schedule: "@daily"
       dvbackup.target: "/archive"
       dvbackup.rotation: "7"
-      dvbackup.gpg-passphrase: '1234#$ecret'
+      dvbackup.gpg-passphrase: '1234#$$ecret'
