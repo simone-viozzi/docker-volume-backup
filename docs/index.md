@@ -7,13 +7,13 @@ nav_order: 1
 # offen/docker-volume-backup
 {:.no_toc}
 
-Backup Docker volumes locally or to any S3, WebDAV, Azure Blob Storage, Dropbox or SSH compatible storage.
+Backup Docker volumes locally or to any S3, WebDAV, Azure Blob Storage, Dropbox, Google Drive or SSH compatible storage.
 {: .fs-6 .fw-300 }
 
 ---
 
 The [offen/docker-volume-backup](https://hub.docker.com/r/offen/docker-volume-backup) Docker image can be used as a lightweight (below 15MB) companion container to an existing Docker setup.
-It handles __recurring or one-off backups of Docker volumes__ to a __local directory__, __any S3, WebDAV, Azure Blob Storage, Dropbox or SSH compatible storage (or any combination thereof) and rotates away old backups__ if configured. It also supports __encrypting your backups using GPG__ and __sending notifications for (failed) backup runs__.
+It handles __recurring or one-off backups of Docker volumes__ to a __local directory__, __any S3, WebDAV, Azure Blob Storage, Dropbox, Google Drive or SSH compatible storage (or any combination thereof) and rotates away old backups__ if configured. It also supports __encrypting your backups using GPG__ and __sending notifications for (failed) backup runs__.
 
 {: .note }
 Code and documentation for `v1` versions are found on [this branch][v1-branch].
@@ -128,7 +128,7 @@ While it may work against different implementations (e.g. Balena Engine), there 
 This image is heavily inspired by `jareware/docker-volume-backup`. We decided to publish this image as a simpler and more lightweight alternative because of the following requirements:
 
 - The original image is based on `ubuntu` and requires additional tools, making it heavy.
-This version is roughly 1/25 in compressed size (it's ~15MB).
+This version is roughly 1/20 in compressed size (it's ~25MB).
 - The original image uses a shell script, when this version is written in Go.
 - The original image proposed to handle backup rotation through AWS S3 lifecycle policies.
 This image adds the option to rotate away old backups through the same command so this functionality can also be offered for non-AWS storage backends like MinIO.
