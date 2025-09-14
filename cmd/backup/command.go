@@ -29,8 +29,18 @@ func newCommand() *command {
 
 // runAsCommand executes a backup run for each configuration that is available
 // and then returns
-func (c *command) runAsCommand() error {
-	configurations, err := sourceConfiguration(configStrategyEnv)
+func (c *command) runAsCommand(style string) error {
+	var strategy configStrategy
+	switch style {
+	case "envfile":
+		strategy = configStrategyEnv
+	case "labels":
+		strategy = configStrategyLabels
+	default:
+		return fmt.Errorf("config style %s not implemented", style)
+	}
+
+	configurations, err := sourceConfiguration(strategy)
 	if err != nil {
 		return errwrap.Wrap(err, "error loading env vars")
 	}
@@ -50,7 +60,17 @@ type foregroundOpts struct {
 
 // runInForeground starts the program as a long running process, scheduling
 // a job for each configuration that is available.
-func (c *command) runInForeground(opts foregroundOpts) error {
+func (c *command) runInForeground(opts foregroundOpts, style string) error {
+	var strategy configStrategy
+	switch style {
+	case "envfile":
+		strategy = configStrategyConfd
+	case "labels":
+		strategy = configStrategyLabels
+	default:
+		return fmt.Errorf("config style %s not implemented", style)
+	}
+
 	c.cr = cron.New(
 		cron.WithParser(
 			cron.NewParser(
@@ -59,7 +79,7 @@ func (c *command) runInForeground(opts foregroundOpts) error {
 		),
 	)
 
-	if err := c.schedule(configStrategyConfd); err != nil {
+	if err := c.schedule(strategy); err != nil {
 		return errwrap.Wrap(err, "error scheduling")
 	}
 
@@ -81,7 +101,7 @@ func (c *command) runInForeground(opts foregroundOpts) error {
 			<-ctx.Done()
 			return nil
 		case <-c.reload:
-			if err := c.schedule(configStrategyConfd); err != nil {
+			if err := c.schedule(strategy); err != nil {
 				return errwrap.Wrap(err, "error reloading configuration")
 			}
 		}
